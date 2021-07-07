@@ -1,12 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const morgan = require('morgan');
 
 // app.use(cors());
+app.use(morgan('dev'));
+
+const rotaProdutos = require('./routes/produtos');
+const rotaPedidos = require('./routes/pedidos');
+
+app.use('/produtos', rotaProdutos);
+app.use('/pedidos', rotaPedidos);
 
 app.use((req, res, next) => {
-    res.status(200).send({
-        mensagem: 'OK, Deu certo'
+    const erro = new Error('Rota não encontrada.');
+    erro.status = 404;
+    next(erro);
+});
+
+app.use((error, req, res, next) => {
+    res.status(error.status || 500);
+    return res.send({
+        erro: {
+            mensagem: error.mensagem
+        }
     });
 });
 
